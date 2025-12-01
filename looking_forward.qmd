@@ -1,0 +1,9 @@
+# Looking Forward
+
+By design, this book and course had to be selective in what we focused on for a one semester course in the context of ETH Zürich's D-MAVT program, and so many topics were either ignored completely or only touched upon briefly. This chapter focuses on how to move forward with additional content beyond this course/book, so that those who are interested in learning more about the topics we covered (or skipped entirely) at intersection of Machine Learning and Mechanical Engieering.
+
+## Further Courses at ETH Zürich
+
+## Further Textbooks for Self-Study
+
+

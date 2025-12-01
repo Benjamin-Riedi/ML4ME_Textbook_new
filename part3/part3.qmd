@@ -1,0 +1,3 @@
+# Engineering-Specific Considerations
+
+These chapters deal with issues that are particularly prevalent in Mechanical Engineering contexts and may cut across specific models mentioned in Part 2. These are likely to persist over time, even as new models or approaches are invented, although they will likely get easier to address as research fields expand.

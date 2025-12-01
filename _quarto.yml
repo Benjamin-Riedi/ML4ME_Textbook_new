@@ -1,0 +1,87 @@
+project:
+  type: book
+  #output-dir: docs
+
+book:
+  title: "Machine Learning for Mechanical Engineering"
+  author: "Mark Fuge"
+  date: "09/17/2025"
+  page-navigation: true
+  page-footer: "Machine Learning for Mechanical Engineers © 2025 by [Mark Fuge and IDEAL Lab Contributors](./index.qmd#sec-contributors) is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)"
+  #downloads: [pdf]
+  chapters:
+    - index.qmd
+    #- intro.qmd
+    - part: part1/part1.qmd
+      chapters:
+        - part1/reviewing_supervised_linear_models.ipynb
+        - notebooks/cross_validation_linear_regression.ipynb
+        #- part1/gradient_descent.qmd
+        - notebooks/supervised_linear_models.ipynb
+        - part1/linear_decompositions.ipynb
+        - part1/taking_derivatives.ipynb
+        - part1/distribution_distance.ipynb
+        - part1/introduction_to_inference.ipynb
+        #- part1/measuring_distributions.qmd
+    - part: part2/part2.qmd
+      chapters:
+        - part2/review_neural_networks.ipynb 
+        - part2/gen_models/intro_to_GANS.ipynb
+        - part2/gen_models/GAN_pitfalls.ipynb
+        - part2/gen_models/OT.ipynb
+        - part2/gen_models/VAEs.ipynb
+        - part2/gen_models/normalizing_flows.ipynb
+        - part2/gen_models/continuous_flows.ipynb
+        - part2/gen_models/score_matching.ipynb
+        - part2/gen_models/diffusion_models.ipynb
+        - part2/gen_models/flow_matching.ipynb
+        - part2/gen_models/latent_generative_models.ipynb
+        - part2/introduction_to_reinforcement_learning.ipynb
+        #- part2/review_linear_models.qmd
+        #- part2/review_NNs.qmd
+        #- part2/regularization_NNs.qmd
+        #- part2/failure_modes_NNs.qmd
+        #- part2/generative_models_pushforward.qmd
+        #- part2/generative_models_stochastic.qmd
+        #- part2/probabilistic_models.qmd
+        #- part2/failure_modes_probabilistic_models.qmd
+        #- part2/kernel_methods.qmd
+    #- part: part3/part3.qmd
+    #  chapters: 
+        #- part3/dealing_with_small_data.qmd
+        #- part3/transfer_learning.qmd
+    #- looking_forward.qmd
+    - references.qmd
+    - part: problems/problems.qmd
+      chapters: 
+        - problems/ps1.qmd
+        - problems/ps2.qmd
+    - part: notebooks/notebooks.qmd
+      number-sections: false
+      chapters:
+        - notebooks/california_housing_visualization.ipynb
+    
+  appendices:
+    - appendices/helpful_tooling.qmd
+    #- appendices/data_preparation.qmd
+    - appendices/course_progression.qmd
+    - appendices/review_of_singular_value_decomposition.ipynb
+    - appendices/review_of_math_and_computing_foundations.ipynb
+
+bibliography: references.bib
+
+format:
+  html:
+    theme:
+      - cosmo
+      - brand
+    reference-location: margin
+    citation-location: margin
+    footnote-location: margin
+    notebook-links: true
+  #pdf:
+  #  documentclass: scrreprt
+format-links: [ipynb]
+editor:
+  render-on-save: true
+

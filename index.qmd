@@ -1,0 +1,46 @@
+# Preface {.unnumbered}
+
+This is an open textbook to accompany my course notes for "Machine Learning for Mechanical Engineering" at ETH Zürich in the Department of Mechanical and Process Engineering (D-MAVT). 
+
+# Pre-Requisites
+This course was designed as an introductory course in Machine Learning (ML) focused on applications within Mechanical Engineering. However, it is also designed as follow on course from ETHZ's "Stochastics and Machine Learning" course which is required of all D-MAVT students, and therefore, I assume familiarity with the topics covered in that course.
+
+This book is also designed with several executable code sections that allow you to interactively experiment with the course materials using Python. For this, we have tried to keep the required packages as close as possible to the default Anacoda Package structure in Python 3.12, but will place any additional requirements in a requirements file to enable easy creation of Virtual Environments if you want to run the code in this book.
+
+# How This Book is Structured
+
+This book is designed to map to a one semester course at the advanced Undergraduate level (although early Masters students may still find it useful), and essentially features three parts:
+
+1. **Part 1: Foundational Skills** -- These chapters cover skills that cut across different ML approaches and that should serve you well in the future regardless of which models are "state-of-the-art" at the time. We will revisit these skills throughout the course, but I wanted to separate them into distinct chapters to (1) highlight/elevate their critical importance as independent skills worthy of your learning, and (2) enable a certain amount of depth and self-learning on these skills beyond what we can draw out during individual course modules or later chapters.
+2. **Part 2: Model-Specific Approaches** -- These chapters look more like a "traditional" textbook, in the sense that they cover individual techniques or concepts that I thought were maximally relevant to Mechanical Engineers at the time that I wrote the book. These chapters will be most immediately useful in terms of getting up to speed with specific types of models, but they are also the most likely to become out of date quickly as newer/better models are invented.
+3. **Part 3: Engineering-Specific Considerations** -- These chapters deal with issues that are particularly prevalent in Mechanical Engineering contexts and may cut across specific models mentioned in Part 2. These are likely to persist over time, even as new models or approaches are invented, although they will likely get easier to address as research fields expand.
+4. **Appendix: Useful Background Information** -- I will reserve the Appendix for useful background knowledge that either should have been covered in prior courses, or which is of an implementation nature beyond what is practical to include the earlier chapters. I anticipate that this part of the book will initially be very empty, but that I will add to it as needed over future course semesters.
+
+# Elements within the Book
+
+## Runnable and Interactive Code Elements
+
+Many of the elements of this book involve runnable code elements in Python, or interactive experiments that you can conduct or visualize while you are reading. These will appear largely static in the rendered book, since some may have long run-times, but you can download and run the corresponding notebook in a browser-based environment (*e.g.*, CoLab) to be able to run the experiments. Most experiments in the book are designed to be run in class in the span of a few minutes, so browser-based environments should work well for this.
+
+## Callouts with Notes and Experiments
+
+Through the book, I will occasionally use callouts like the one demonstrated below for a couple of use cases:
+
+::: {.callout-note collapse="true"}
+### Example Collapsed Note, *e.g.*, for a Derivation
+Here is what a note with a collapsable block structure will look like. We will also use this type of structure to hide details of long derivations, either so you can work them out on your own first, or because the details are not immediately central to following what comes next in the chapter or lecture.
+:::
+
+
+::: {.callout-tip appearance="default"}
+### Example Experiment
+Here is an example where we might pose an experiment or task for you to do on your own or in class. Often wrestling with these experiments is a good way to build intuitive understanding and integrate some of the material into practice. When you see this type of callout, you should pause and do the exercise at this point in the chapter, rather than reading ahead, as it may build intuition which is useful later in the chapter.
+:::
+
+
+# Contributors {#sec-contributors}
+
+I (Mark Fuge) originally created many of the foundational notebooks included in this book over around 8 years of teaching, mostly as separate Jupyter notebooks I used in my class, and which I now am compiling and extending here in a more coherent and organized form. At the request of others, I have decided to make this content open and extendable by others under a suitable license ([CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)). In addition, below I acknowledge the help and additions of others who have contributed elements to these notes:
+
+- Matthew Keeler: Helped reformat many of my existing notebooks into a format that made this online version possible.
+- Dr. Florian Felten: Created @sec-helpful-tooling.

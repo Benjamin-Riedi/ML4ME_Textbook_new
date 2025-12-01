@@ -1,0 +1,20 @@
+# Foundations of Generative Models
+
+These chapters look more like a "traditional" textbook, in the sense that they cover individual techniques or concepts that I thought were maximally relevant to Mechanical Engineers at the time that I wrote the book. These chapters will be most immediately useful in terms of getting up to speed with specific types of models, but they are also the most likely to become out of date quickly as newer/better models are invented.
+
+- Review of Prior Course Models -- CNNs, UNets, RNNs, AEs
+- Advanced Neural Models
+  - The Attention Mechanism
+  - Introduction to Transformers
+  - Regularization of Neural Networks
+  - Introduction to Geometric Deep Learning (Message Passing, GNNs, Working with Meshes)
+  - Failure Mechanisms in Neural Models
+- Probabilistic Models and Kernels
+  - Introduction to Probabilistic Graphical Models
+  - Exact Inference (MLE, MAP, EM)
+  - Approximate Inference (MCMC, VI)
+  - Introduction to Probabilistic Programming
+  - Failure Mechanisms in Probabilistic Models
+- Ensembles (Not included in current course for scope reasons)
+  - Bagging
+  - Boosting

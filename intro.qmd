@@ -1,0 +1,10 @@
+# Introduction
+
+## What is Machine Learning?
+
+## Why is Machine Learning (ML) relevant within Mechanical Engineering?
+
+## What are some unique features of Mechanical Engineering that make it different or more difficult than classical ML topics?
+
+## What are critical skills Mechanical Engineers should learn in the context of Machine Learning?
+

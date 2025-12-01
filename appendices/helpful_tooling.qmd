@@ -1,0 +1,650 @@
+# Helpful Tooling for Working with and Debugging Machine Learning Models {#sec-helpful-tooling}
+
+Machine learning projects are notoriously brittle: minor implementation details can cause major differences in outcomes. Good practices and tools make your implementation **reproducible** (and thus **debuggable**), and **portable** across different hardware environments, such as a teammate's laptop or a high-performance computing (HPC) system.
+
+Unlike traditional programming, debugging ML models by simply "running and fixing in a loop" is rarely effective. Instead, a structured set of practices and tools is needed to understand model behavior and reproduce results reliably.  
+
+## TL;DR Checklist
+
+Here is what we encourage doing, sorted by impact over effort.
+
+1. [**Environment**](#integrated-development-environments-ides) & [**Dependencies**](#python-project-setup): Use a proper development environment, virtual environments and pin package versions. Document GPU/CUDA.  
+2. [**Linting**](#formatting-and-linting): Use tools like `ruff` to help you write clean code from the start.
+3. [**Random Seeds**](#seeded-runs): Seed all libraries (`torch`, `numpy`, `random`) and enable deterministic operations.  
+4. [**Logging**](#hyperparameters) & [**Checkpoints**](#split-your-pipeline): Log hyperparameters, save models, track experiments (e.g., wandb).  
+5. [**Visualization**](#visualizing): Plot data and learning curves.
+6. [**Start Small Then Scale**](#start-small-then-scale): Debug on small datasets first.  
+7. [**Version Control**](#version-control): Track code with Git; use branches for experiments.  
+8. [**Modular Code**](#code-organization): Split code into functions/classes and separate files.  
+9. [**Testing**](#testing) & [**Type Hints**](type-hints): Write `pytest` tests and use `mypy` for type checking.  
+
+
+## Reproducible Runs
+
+The first requirement for a robust ML project is to make the codebase **deterministic**. Because ML is inherently probabilistic, running the same code twice without precautions may yield different results. Determinism is therefore a prerequisite for debugging.
+
+### Python Project Setup
+
+A good practice is to use a virtual environment (e.g., [`venv`](https://www.w3schools.com/python/python_virtualenv.asp)) to isolate dependencies. This prevents conflicts between projects (e.g., my linear regression project uses `sklearn` 1.0.2, and my generative design project uses `sklearn` 2.5.3) and avoids interfering with the base operating system.  
+
+Dependencies should be pinned to exact versions in a file such as `pyproject.toml` or `requirements.txt`. This enables others (including future you) to reproduce the same environment.  
+
+Note that not all dependencies are automatically captured in Python configuration files---for instance, the CUDA version used for GPU processing must be documented separately (typically in a `README.md`).  
+
+### Seeded Runs
+
+Most ML techniques involve randomness (e.g., parameter initialization, sampling, data shuffling). To ensure reproducibility, it is necessary to set a *random seed* so that random number generators produce a deterministic sequence.  
+
+In practice, several libraries must be seeded and it will look similar to:
+
+```python
+import torch as th
+import numpy as np
+import random
+
+my_seed = 42
+
+th.manual_seed(my_seed)  # PyTorch
+th.backends.cudnn.deterministic = True
+torch.cuda.benchmark = False
+rng = np.random.default_rng(my_seed)  # NumPy
+random.seed(my_seed)  # Python's built-in random
+```
+
+### Hyperparameters
+
+Hyperparameter values can influence results as strongly as changing the algorithm itself. It is essential to record which hyperparameters were used for each experiment.  
+
+Experiment-tracking platforms automate this process. For example, [Weights and Biases](https://wandb.ai/site/) (wandb), or [Trackio](https://huggingface.co/blog/trackio) can log hyperparameters, Python version, and hardware details, as well as visualize results such as learning curves. See, for example:  
+
+- [Run overview](https://wandb.ai/engibench/engiopt/runs/j7wb71oh/overview)  with hyperparameter "Config."
+- [Learning curves and sampled designs](https://wandb.ai/engibench/engiopt/runs/j7wb71oh)  
+
+
+::: {.callout-tip appearance="default"}
+### Checkpoint
+Once versions, seeds and hyperparameters are fixed, **running the model multiple times should yield identical results across runs** (look at the wandb curves). Inconsistent results usually indicate a missing seed or an unpinned dependency. Without determinism, debugging will be much more time-consuming. We strongly advise to pay attention to this.
+:::
+
+::: {.callout-note collapse="true"}
+### Other Sources of Non-Determinism
+This is unlikely to happen within the course but it is still worth mentioning.
+
+Even if you set seeds and pin library versions, some sources of non-determinism may persist due to the environment:
+
+- **Multithreading or parallelism:** Operations may be executed in different orders on CPU threads.  
+- **GPU operations:** Certain GPU kernels are non-deterministic by design, even with fixed seeds.  
+- **Library versions or BLAS/CUDA backends:** Different versions of underlying math libraries may produce slightly different results.
+
+To mitigate these issues:
+
+- Enable deterministic operations where possible (e.g., `torch.backends.cudnn.deterministic = True` for PyTorch).  
+- Be aware that some operations may never be fully deterministic on GPU---document this for reproducibility.  
+:::
+
+
+
+
+## Code Management
+
+ML projects should be approached as software engineering projects. Code quality and management are especially critical: poorly organized or fragile code increases the likelihood of errors and makes debugging more difficult. In addition, Python's permissiveness can hide subtle mistakes. For example, [automatic broadcasting of scalars to vectors](https://numpy.org/doc/stable/user/basics.broadcasting.html) may not raise an exception when performing operations on vectors or matrices of mismatched sizes, yet it can still produce incorrect results. Such silent errors are often harder to detect than explicit crashes.
+
+
+### Code Organization
+
+Notebooks are valuable for exploration and prototyping, but they are less suited for building robust and reproducible experiments. Relying on a single notebook or script often leads to unmanageable code as the project grows. By contrast, a modular codebase is easier to test, extend, and maintain. Organizing code into **smaller, modular components** simplifies both debugging and collaboration.  
+
+- Divide the project into functions, each with a single, well-defined purpose. A useful rule of thumb is: if you cannot clearly explain what a function does in one sentence, it should probably be split.  
+- Use classes when it is natural to group related data and behavior together.  
+- Split large projects across multiple files to make navigation easier. Avoid single files with 1000+ lines, as they are hard to read, debug, and extend.
+
+
+
+### Version Control
+
+Version control ensures that specific states of a project can be identified and restored. We strongly recommend using [Git](https://git-scm.com/downloads) (with GitHub or similar platforms) for ML projects. When working in teams, branches help manage changes and prevent conflicts.  
+
+### Formatting and Linting
+
+Code formatting conventions (e.g., number of spaces per indentation, placement of comments, naming conventions) do not affect program behavior but improve readability. There are formatters that can automatically fix the visual style of the code—things like indentation, line breaks, spacing around operators, and alignment.
+
+Linting, goes beyond formatting: linters analyze your code for potential errors or risky patterns, such as unused variables, variables that may be undefined, or suspicious comparisons.  
+
+[`ruff`](https://docs.astral.sh/ruff/) integrates formatting, linting, and error detection in a single tool. It improves code quality, reduces stylistic disagreements, and allows developers to focus on the intent rather than the syntax.  
+
+### Type Hints
+
+In addition to formatting and linting, static type checking helps catch errors before running your code. Python is dynamically typed, which means you can easily pass the wrong type of object to a function without immediate errors. Tools like [`mypy`](http://mypy-lang.org/) analyze your code using type hints and report mismatches.
+
+For example, in:
+
+```python
+def add_numbers(a: int, b: int) -> int:
+    return a + b
+
+add_numbers(2, "3") # note the String here
+```
+Running `mypy` will output:
+```
+main.py:4: error: Argument 2 to "add_numbers" has incompatible type "str"; expected "int"  [arg-type]
+Found 1 error in 1 file (checked 1 source file)
+```
+
+Using type hints (`a: int`, `-> int`) together with `mypy` lets you detect bugs early, improves code readability, and helps IDEs provide better autocompletion and refactoring support.
+
+### Testing
+
+Testing individual components---functions, classes, or modules---is an important way to ensure reliability. Well-written tests allow developers to:  
+
+- **Isolate potential error sources:** When a bug occurs, thoroughly tested components can be excluded from investigation, saving time.  
+- **Detect unintended side effects:** Tests help ensure that changes in one part of the codebase do not break other parts.  
+
+Testing and good code organization go hand in hand: modular code is naturally easier to test, and writing tests often encourages cleaner, more maintainable designs.
+
+The most common tool for this is [`pytest`](https://docs.pytest.org/en/stable/). For example:
+
+If you define a function in your project:
+```py
+# my_project/utils.py
+def add_numbers(a, b):
+    return a + b
+```
+
+You can define tests with:
+```py
+# tests/test_math.py -- this is your test file
+from my_project.utils import add_numbers
+
+def test_add_numbers():
+    assert add_numbers(2, 3) == 5
+    assert add_numbers(-1, 1) == 0
+```
+
+Running `pytest` will automatically discover these tests and report any failures.
+
+
+### Integrated Development Environments (IDEs)
+
+While you can write Python code in any text editor, using an IDE significantly improves productivity. [**Visual Studio Code (VS Code)**](https://code.visualstudio.com/) is the most popular choice for Python and ML development. It supports:  
+
+- **Extensions:** Add functionality and friendly interface for linting [`ruff`](#linting), type checking [`mypy`](#type-hints), testing [`pytest`](#testing), and [`git`](#version-control) integration.  
+- **Handling of virtual environments:** VSCode can create and handle virtual environments for you.
+- **Debugger:** Set breakpoints and inspect the current state of variables, run instruction by instruction. This is much easier than putting prints everywhere.
+- **Notebooks inside VS Code:** You can run Jupyter notebooks directly within your IDE.
+- **LLMs integration**: Students have access to GitHub education (and Copilot), VSCode has a direct LLM integration for code completion and agent.
+
+
+### Large Language Models (LLMs) for Coding
+
+Tools like ChatGPT or GitHub Copilot can generate code quickly. While this can accelerate boilerplate writing, **it does not replace understanding**.  
+
+Machine learning code is particularly sensitive to details: a small mistake in data preprocessing, tensor dimensions, or random seeding can completely change results. Using LLMs without knowing what the code does may:  
+
+- Hide important assumptions.  
+- Lead to silent bugs that are hard to detect.  
+- Prevent you from learning how ML algorithms really work.  
+
+Guideline: LLMs are great for generating snippets (e.g., "write a function to convert my CSV data to JSON"), but always **read, run, and understand the code** before using it in experiments. For ML, correctness and reproducibility are more important than speed.  
+
+
+
+## Debugging
+
+If the codebase is well-structured and reproducible but issues persist, the problem is likely related to the maths, hyperparameters, or data.  
+
+### Visualizing
+
+Visualization is one of the most effective debugging tools in ML, particularly in engineering contexts where results can often be represented graphically.  
+
+#### Algorithm-level Visualizations
+- **Loss curves:** Simple plots can reveal overfitting, underfitting, or learning failures. 
+- **Predictions:** Comparing model outputs with reference data at various training stages provides direct insight into progress.  
+
+For these, we often report metrics and outputs in wandb, see for instance [these lines](https://github.com/IDEALLab/EngiOpt/blob/main/engiopt/cgan_cnn_2d/cgan_cnn_2d.py#L354-L361).
+
+#### Data-level Visualizations
+- **Inspect dataset distributions:** Check whether features are on compatible scales, whether rescaling or normalization is needed, and whether outliers are present. Tools like `matplotlib` or `seaborn` can help.  
+- **Assess assumptions:** Determine whether the data distribution aligns with the model's underlying assumptions, e.g., can the data distribution be captured by a Gaussian distribution.
+
+### Split Your Pipeline
+
+It is good practice to split your training pipeline into distinct stages:
+
+- **Data analysis:** [Visualize](#visualizing) your data. Look at the distributions, detect outliers, and gain insights into what preprocessing might be needed and which models may perform well.
+- **Data pre-processing:** Massage your data before feeding it to the model. [Visualize](#visualizing) to ensure transformations are correct and consistent. 
+- **Training:** Train your model on the preprocessed data. Save trained models to disk after each run (`torch.save`, `pickle`, or similar). This allows you to avoid retraining from scratch every time you tweak evaluation code.  
+- **Evaluation:** Load the saved model and run your evaluation routines on validation or test datasets. 
+
+By separating these stages, you can debug each part independently, and validate progress.
+
+
+### Start Small, Then Scale
+
+When debugging, it is inefficient to run large-scale experiments immediately. Instead:  
+
+- Begin with small, fast experiments (e.g., a reduced dataset or a lightweight simulator).  
+- Validate that the model can learn on trivial cases.  
+- Attempt to reproduce established results or baseline performance.  
+
+Scaling to larger, more complex runs should only occur once smaller experiments confirm that the model behaves as expected. 
+
+
+### Performance Profiling with `timeit`
+
+Sometimes the bug is actually that the code is too slow. When this happens, the first step is often to measure *where* the time goes. You can do that with Python's built-in [`timeit`](https://docs.python.org/3/library/timeit.html).
+
+`timeit` runs a snippet of code multiple times and reports the average execution time, helping you compare different implementations or detect bottlenecks.
+
+
+Here is an example for normalizing data:
+```py
+import numpy as np
+import timeit
+
+setup = """
+import numpy as np
+data = np.random.rand(10000, 100)  # 10k samples, 100 features
+"""
+
+# Option 1: Pure Python loops
+stmt1 = """
+normalized = []
+for row in data:
+    mean = np.mean(row)
+    std = np.std(row)
+    normalized.append((row - mean) / std)
+normalized = np.array(normalized)
+"""
+
+# Option 2: NumPy vectorization
+stmt2 = """
+means = np.mean(data, axis=1, keepdims=True)
+stds = np.std(data, axis=1, keepdims=True)
+normalized = (data - means) / stds
+"""
+
+print("Python loops:", timeit.timeit(stmt1, setup=setup, number=10))
+print("NumPy vectorization:", timeit.timeit(stmt2, setup=setup, number=10))
+```
+Results:
+```
+Python loops: 0.8857301659882069
+NumPy vectorization: 0.04489224997814745
+```
+Using NumPy vectorization is ~20x faster than Python loops.
+
+In notebooks, you don’t even need imports:
+
+```py
+%timeit sum(range(1000))
+```
+
+
+## A Practical Example
+
+This section shows a practical example using the techniques explained above on an actual code.
+
+### Step 0: The Ugly Script
+
+We start with some messy code that Ruff would flag:
+
+```python
+# train.py
+import numpy as np, torch, torch.nn as nn, torch.optim as optim, matplotlib.pyplot as plt, random
+from sklearn.model_selection import train_test_split
+
+X_all =np.linspace(0, 100, 500).reshape(-1,1)
+y_all = 5* np.sin(0.1 * X_all)+np.random.randn(500,1)
+X_train,X_test,y_train,y_test =train_test_split(X_all,y_all,test_size=0.2,random_state=42)
+
+model =nn.Linear(1,1)
+optimizer =optim.SGD(model.parameters(),lr=0.01)
+loss_fn= nn.MSELoss()
+
+for epoch in range(500):
+    pred =model(torch.tensor(X_train))
+    loss= loss_fn(pred, torch.tensor(y_train))
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+    print(f"Epoch {epoch} - Loss: {loss.item()}")
+```
+
+At first glance, it looks okay but it won't run. Try executing `python train.py` to see the errors.
+
+### Step 1: From Ugly to Bad
+
+Run [ruff](#formatting-and-linting) to format and check. Fix the errors (or call `ruff check --fix train.py`).
+
+Now the code is already cleaner and easier to debug. Still, running the file throws errors.
+
+
+### Step 2: Debugging
+
+Running python train.py gives a cryptic type error at the loss computation:
+`RuntimeError: mat1 and mat2 must have the same dtype, but got Double and Float`.
+
+The problem is that the model outputs `float32` predictions while y is `float64`. This causes a mismatch in the loss computation. The fix is to change the lines to:
+
+```diff
+- pred = model(torch.tensor(X_train))
+- loss = loss_fn(pred, torch.tensor(y_train))
++ pred = model(torch.tensor(X_train, dtype=torch.float32))
++ loss = loss_fn(pred, torch.tensor(y_train, dtype=torch.float32))
+```
+
+### Step 3: Make your Script as Deterministic as possible
+
+It is important to remove sources of non determinism when debugging ML models, see [seeding](#seeded-runs).
+
+```py
+# right after the imports
+rng = np.random.default_rng(42)  # seed NumPy random
+torch.manual_seed(42)  # seed PyTorch
+torch.cuda.manual_seed(42)  # see PyTorch CUDA (for NVIDIA GPUs)
+torch.backends.cudnn.deterministic = True  # tell PyTorch to use deterministic kernels
+torch.backends.cudnn.benchmark = False # removes internal optimizations that can cause non-determinism 
+```
+And when defining your outputs:
+```diff
+# replace np.random by the seeded RNG
+- y = 5 * np.sin(0.1 * X_all) + np.random.randn(100, 1)
++ y = 5 * np.sin(0.1 * X_all) + rng.standard_normal(size=(100, 1))
+```
+
+### Step 4: Visualizing
+
+It is extremely important to [visualize](#visualizing) your data. For this, we can add this to the script:
+
+#### Visualizing data
+```py
+import matplotlib.pyplot as plt
+```
+and before the training loop:
+```py
+plt.scatter(X_train, y_train, label="Train")
+plt.scatter(X_test, y_test, color="red", label="Test")
+plt.xlabel("X")
+plt.ylabel("y")
+plt.title("Data")
+plt.legend()
+plt.show()
+```
+
+#### Visualizing loss
+```py
+# before training loop
+losses = []
+
+# in your training loop
+losses.append(loss.item())
+
+# after training loop
+plt.plot(losses)
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.title("Loss over time")
+plt.show()
+```
+
+**Observations**:
+
+- The target is sinusoidal, a simple linear model cannot capture this (we've made bad assumptions for the model).
+- The loss is producing `nan`s and going to `inf`.
+- The features are not normalized, making learning difficult.
+
+
+### Step 5: Normalizing Features
+
+```py
+X_mean = X_train.mean(axis=0, keepdims=True)
+X_std = X_train.std(axis=0, keepdims=True)
+y_mean = y_train.mean(axis=0, keepdims=True)
+y_std = y_train.std(axis=0, keepdims=True)
+X_train_norm = (X_train - X_mean) / X_std
+y_train_norm = (y_train - y_mean) / y_std
+X_test_norm = (X_test - X_mean) / X_std
+y_test_norm = (y_test - y_mean) / y_std
+```
+
+or using scikit-learn utils:
+
+```py
+x_scaler = StandardScaler()
+y_scaler = StandardScaler()
+X_train_norm = x_scaler.fit_transform(X_train)
+y_train_norm = y_scaler.fit_transform(y_train)
+X_test_norm = x_scaler.transform(X_test)
+y_test_norm = y_scaler.transform(y_test)
+```
+
+Use these normalized tensors in the training loop instead of the raw values.
+
+### Step 6: Visualizing Predictions
+
+Now the loss seems to go down, the code runs. Let's look at the predictions. This code will help you visualize the predictions vs. the true values:
+
+```py
+# after the training loop
+with torch.no_grad():
+    predictions = model(X_tensor)
+
+plt.figure(figsize=(8, 5))
+plt.scatter(X_tensor.numpy(), y_tensor.numpy(), label="True data", color="blue", alpha=0.5)
+plt.scatter(
+    X_tensor.numpy(), predictions.numpy(), label="Predictions", color="red", alpha=0.5
+)
+plt.xlabel("X")
+plt.ylabel("y")
+plt.title("True vs Predicted")
+plt.legend()
+plt.show()
+```
+
+**Observation:** It is pretty obvious that our model has not enough capacity to capture the data.
+
+### Step 7: Adjusting Hyperparameters
+
+Let's try to increase the model size. 
+
+```py
+model = nn.Sequential(
+    nn.Linear(1, 16), nn.ReLU(), nn.Linear(16, 16), nn.ReLU(), nn.Linear(16, 1)
+)
+```
+
+And re-run. Now we see the loss is not optimal. 
+
+- Can you adjust the learning rate and model size? 
+- What about the optimizer?
+- And how are you going to keep track of what combination of hyperparameter values you have tried? 
+- Also, you have several plots (prediction, loss) for each run which are helpful.
+
+For this, we recommend using experiment trackers, such as [Weights and Biases or Trackio](#hyperparameters). 
+
+First, you start by defining your hyperparameters on top the file:
+
+```py
+hyperparameters = {
+    "learning_rate": 0.01,
+    "model_layers": [16, 16],
+    "activation": "ReLU",
+}
+```
+and use them in your training script. For instance, your model definition becomes
+```py
+model_layers: list[int] = hyperparameters["model_layers"]
+layers = []
+
+# Build all layers including input and hidden layers -- this allows to just change the model_layers in your hyperparameters dictionary.
+current_size = 1
+for layer_size in model_layers:
+    layers.append(nn.Linear(current_size, layer_size))
+    if hyperparameters["activation"] == "ReLU":
+        layers.append(nn.ReLU())
+    elif hyperparameters["activation"] == "Sigmoid":
+        layers.append(nn.Sigmoid())
+    current_size = layer_size
+
+# Add output layer
+layers.append(nn.Linear(current_size, 1))
+
+model = nn.Sequential(*layers)
+optimizer = optim.SGD(model.parameters(), lr=hyperparameters["learning_rate"]) # see hyperparameter here
+```
+
+Then, you log these hyperparameters for each experiment:
+```py
+ wandb.init(project="example", config=hyperparameters)
+```
+
+In your training loop:
+```py
+wandb.log({"loss": loss.item()})
+```
+
+You can even log an image of prediction vs. true data at each training step. See below.
+
+
+
+### Final Code
+```py
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import matplotlib.pyplot as plt
+import trackio as wandb
+from sklearn.model_selection import train_test_split
+
+rng = np.random.default_rng(42)  # seed NumPy random
+torch.manual_seed(42)  # seed PyTorch
+torch.cuda.manual_seed(42)  # see PyTorch CUDA (for NVIDIA GPUs)
+torch.backends.cudnn.deterministic = True  # tell PyTorch to use deterministic kernels
+torch.backends.cudnn.benchmark = (
+    False  # removes internal optimizations that can cause non-determinism
+)
+
+hyperparameters = {
+    "learning_rate": 0.01,
+    "model_layers": [16, 16],
+    "activation": "ReLU",
+}
+
+
+def visualize_data(
+    model: nn.Module,
+    X_test: np.ndarray,
+    y_test: np.ndarray,
+    epoch: int,
+    open_window: bool = False,
+    log: bool = False,
+):
+    """Visualize the data and the predictions.
+
+    Args:
+        model: The model to visualize the predictions of.
+        X_test: The test data.
+        y_test: The test labels.
+        epoch: The epoch number.
+        open_window: Whether to open a window to display the plot.
+        log: Whether to log the plot to wandb.
+    """
+    with torch.no_grad():
+        predictions = model(torch.tensor(X_test, dtype=torch.float32))
+    plt.scatter(X_test, y_test, color="red", alpha=0.5, label="Data")
+    plt.scatter(
+        X_test, predictions.numpy(), color="blue", alpha=0.5, label="Predictions"
+    )
+    plt.xlabel("X")
+    plt.ylabel("y")
+    plt.title(f"Data - Epoch {epoch}")
+    plt.legend()
+    if log:
+        plt.savefig("predictions.png")
+        wandb.log({"predictions": wandb.Image("predictions.png")})
+    if open_window:
+        plt.show()
+    plt.close()
+
+
+if __name__ == "__main__":
+    wandb.init(project="example", config=hyperparameters)
+
+    X_all = np.linspace(0, 100, 500).reshape(-1, 1)
+    y_all = 5 * np.sin(0.1 * X_all) + rng.standard_normal(size=(500, 1))
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_all, y_all, test_size=0.2, random_state=42
+    )
+
+    plt.scatter(X_train, y_train, label="Train")
+    plt.scatter(X_test, y_test, color="red", label="Test")
+    plt.xlabel("X")
+    plt.ylabel("y")
+    plt.title("Data")
+    plt.legend()
+    plt.show()
+
+    # Normalize the data
+    X_mean = X_train.mean(axis=0, keepdims=True)
+    X_std = X_train.std(axis=0, keepdims=True)
+    y_mean = y_train.mean(axis=0, keepdims=True)
+    y_std = y_train.std(axis=0, keepdims=True)
+    X_train_norm = (X_train - X_mean) / X_std
+    y_train_norm = (y_train - y_mean) / y_std
+    X_test_norm = (X_test - X_mean) / X_std
+    y_test_norm = (y_test - y_mean) / y_std
+
+    model_layers: list[int] = hyperparameters["model_layers"]
+    layers = []
+
+    # Build all layers including input and hidden layers
+    current_size = 1
+    for layer_size in model_layers:
+        layers.append(nn.Linear(current_size, layer_size))
+        if hyperparameters["activation"] == "ReLU":
+            layers.append(nn.ReLU())
+        elif hyperparameters["activation"] == "Sigmoid":
+            layers.append(nn.Sigmoid())
+        current_size = layer_size
+
+    # Add output layer
+    layers.append(nn.Linear(current_size, 1))
+
+    model = nn.Sequential(*layers)
+    optimizer = optim.Adam(model.parameters(), lr=hyperparameters["learning_rate"])
+    loss_fn = nn.MSELoss()
+
+    losses = []
+    for epoch in range(500):
+        pred = model(torch.tensor(X_train_norm, dtype=torch.float32))
+        loss = loss_fn(pred, torch.tensor(y_train_norm, dtype=torch.float32))
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        print(f"Epoch {epoch} - Loss: {loss.item()}")
+        wandb.log({"loss": loss.item()})
+        losses.append(loss.item())
+        if epoch % 20 == 0:
+            visualize_data(
+                model,
+                X_test_norm,
+                y_test_norm,
+                epoch=epoch,
+                open_window=False,
+                log=True,
+            )
+
+    plt.plot(losses)
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.title("Loss over time")
+    plt.show()
+
+    # Show predictions plot at the end of training
+    visualize_data(
+        model, X_test_norm, y_test_norm, epoch=500, open_window=True, log=True
+    )
+    wandb.finish()
+```
