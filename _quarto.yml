@@ -21,6 +21,7 @@ book:
         - part1/taking_derivatives.ipynb
         - part1/distribution_distance.ipynb
         - part1/introduction_to_inference.ipynb
+        - part1/introduction_to_probabilistic_programming.ipynb
     - part: part2/part2.qmd
       chapters:
         - part2/review_neural_networks.ipynb 
@@ -36,9 +37,8 @@ book:
         - part2/gen_models/latent_generative_models.ipynb
         - part2/introduction_to_reinforcement_learning.ipynb
         - part2/gen_models/transformers.ipynb
-    #- part: part3/part3.qmd
-    #  chapters: 
-        #- part3/dealing_with_small_data.qmd
+    # - part: part3/part3.qmd
+    #   chapters: 
         #- part3/transfer_learning.qmd
     #- looking_forward.qmd
     - references.qmd
