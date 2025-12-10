@@ -1,0 +1,3 @@
+# Dealing with Small Data
+
+{{< embed ../notebooks/building_active_learning.ipynb echo=True >}}

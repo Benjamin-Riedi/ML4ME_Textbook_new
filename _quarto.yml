@@ -11,18 +11,17 @@ book:
   #downloads: [pdf]
   chapters:
     - index.qmd
-    #- intro.qmd
-    - part: part1/part1.qmd
+    - intro.qmd
+    - part: part1/index.qmd
       chapters:
         - part1/reviewing_supervised_linear_models.ipynb
         - notebooks/cross_validation_linear_regression.ipynb
-        #- part1/gradient_descent.qmd
         - notebooks/supervised_linear_models.ipynb
         - part1/linear_decompositions.ipynb
         - part1/taking_derivatives.ipynb
         - part1/distribution_distance.ipynb
         - part1/introduction_to_inference.ipynb
-        #- part1/measuring_distributions.qmd
+        - part1/introduction_to_probabilistic_programming.ipynb
     - part: part2/part2.qmd
       chapters:
         - part2/review_neural_networks.ipynb 
@@ -37,18 +36,9 @@ book:
         - part2/gen_models/flow_matching.ipynb
         - part2/gen_models/latent_generative_models.ipynb
         - part2/introduction_to_reinforcement_learning.ipynb
-        #- part2/review_linear_models.qmd
-        #- part2/review_NNs.qmd
-        #- part2/regularization_NNs.qmd
-        #- part2/failure_modes_NNs.qmd
-        #- part2/generative_models_pushforward.qmd
-        #- part2/generative_models_stochastic.qmd
-        #- part2/probabilistic_models.qmd
-        #- part2/failure_modes_probabilistic_models.qmd
-        #- part2/kernel_methods.qmd
-    #- part: part3/part3.qmd
-    #  chapters: 
-        #- part3/dealing_with_small_data.qmd
+        - part2/gen_models/transformers.ipynb
+    # - part: part3/part3.qmd
+    #   chapters: 
         #- part3/transfer_learning.qmd
     #- looking_forward.qmd
     - references.qmd
@@ -79,8 +69,13 @@ format:
     citation-location: margin
     footnote-location: margin
     notebook-links: true
-  #pdf:
-  #  documentclass: scrreprt
+  # pdf:
+  #   documentclass: scrreprt
+  #   #cite-method: biblatex
+  #   include-in-header:
+  #     - text: |
+  #         \usepackage{amsmath}
+  #         \usepackage{mathtools}
 format-links: [ipynb]
 editor:
   render-on-save: true

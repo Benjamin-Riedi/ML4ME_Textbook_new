@@ -3,6 +3,7 @@
 /_book/
 /_site/
 *_files/
+/site_libs/
 
 # LaTeX compilation files
 *.tex

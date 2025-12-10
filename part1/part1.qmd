@@ -1,3 +1,0 @@
-# Foundational Skills
-
-This part of the book covers useful foundational skills that should serve you well regardless of which model is State-of-the-Art at the time. We will use them throughout the book, but it is helpful to have some material and exercises together in a cohesive whole.
